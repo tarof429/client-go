@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian
-COPY ./app /app
-ENTRYPOINT /app
+FROM golang:1.15
+WORKDIR /dist
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+COPY . .
+RUN go build -o /dist/app . && \
+    mv /dist/app /app && \
+    rm -rf /dist
+
+ENTRYPOINT ["/app"]

@@ -12,15 +12,13 @@ client-go uses the [Service Account token][sa] mounted inside the Pod at the
 First compile the application for Linux:
 
     cd in-cluster-client-configuration
-    GOOS=linux go build -o ./app .
-
-Then package it to a docker image using the provided Dockerfile to run it on
-Kubernetes.
+    docker build -t in-cluster .
 
 If you are running a [Minikube][mk] cluster, you can build this image directly
 on the Docker engine of the Minikube node without pushing it to a registry. To
 build the image on Minikube:
 
+    cd in-cluster-client-configuration
     eval $(minikube docker-env)
     docker build -t in-cluster .
 
@@ -29,7 +27,7 @@ that your Kubernetes cluster can pull from.
 
 If you have RBAC enabled on your cluster, use the following
 snippet to create role binding which will grant the default service account view
-permissions.
+permissions. This is the case with Minikube by default; if you try to run the pod and it fails with a forbidden error, then RBAC is enabled.
 
 ```
 kubectl create clusterrolebinding default-view --clusterrole=view --serviceaccount=default:default
@@ -37,11 +35,10 @@ kubectl create clusterrolebinding default-view --clusterrole=view --serviceaccou
 
 Then, run the image in a Pod with a single instance Deployment:
 
-    kubectl run --rm -i demo --image=in-cluster
-
-    There are 4 pods in the cluster
-    There are 4 pods in the cluster
-    There are 4 pods in the cluster
+    kubectl apply -f in-cluster-pod.yaml
+    kubectl logs demo
+    There are 8 pods in the cluster
+    Pod example-xxxxx not found in default namespace
     ...
 
 The example now runs on Kubernetes API and successfully queries the number of
@@ -52,7 +49,7 @@ pods in the cluster every 10 seconds.
 To stop this example and clean up the pod, press <kbd>Ctrl</kbd>+<kbd>C</kbd> on
 the `kubectl run` command and then run:
 
-    kubectl delete deployment demo
+    kubectl delete -f in-cluster-pod.yaml
 
 [sa]: https://kubernetes.io/docs/admin/authentication/#service-account-tokens
 [mk]: https://kubernetes.io/docs/getting-started-guides/minikube/
